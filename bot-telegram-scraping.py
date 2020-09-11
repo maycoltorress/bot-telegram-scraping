@@ -56,8 +56,8 @@ def cmd_producto(bot, update, args):
 
         try:
             # Enviar el mensaje con el Bot
-            CHROMEDRIVER_PATH = os.environ.get('CHROMEDRIVER_PATH', 'C:\Program Files (x86)\Python\Python38-32\Lib\site-packages\selenium\webdriver\chrome\chromedriver.exe')
-            GOOGLE_CHROME_BIN = os.environ.get('GOOGLE_CHROME_BIN', 'C:\Program Files (x86)\Google\Chrome\Application\chrome.exe')
+            CHROMEDRIVER_PATH = os.getenv('CHROMEDRIVER_PATH')
+            GOOGLE_CHROME_BIN = os.getenv('GOOGLE_CHROME_BIN')
             options = Options()
             options.binary_location = GOOGLE_CHROME_BIN
             options.add_argument('--disable-gpu')
@@ -66,7 +66,7 @@ def cmd_producto(bot, update, args):
             driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, chrome_options=options)
             
             # Scraping
-            url = 'https://www.magasa.cl/producto/aparador-tv-'+ args[0] #args[0] contiene el n° de la tarjeta
+            url = 'https://www.magasa.cl/producto/aparador-tv-'+ args[0] #args[0] contiene el producto
             driver.get(url)
             el = driver.find_element_by_tag_name('bdi') #sacar los comentarios de la tarjeta
             msg = el.text
@@ -118,7 +118,12 @@ def main():
         Filters.video | Filters.sticker | Filters.document | Filters.location | Filters.contact, \
         msg_nocmd))
     # Lanzar el Bot ignorando los mensajes que se hayan recibido cuando estaba inactivo (clean=True)
-    updater.start_polling(clean=True)
+    #updater.start_polling(clean=True)
+    updater.start_webhook(listen="0.0.0.0",
+                          port=int(PORT),
+                          url_path=TOKEN)
+    updater.bot.setWebhook('https://bot-telegram-scraping.herokuapp.com/' + TOKEN)
+    
     # Bucle infinito con el cual se muestra como enviar mensajes del Bot cada minuto
     bot = updater.bot
     t_inicial = time()
