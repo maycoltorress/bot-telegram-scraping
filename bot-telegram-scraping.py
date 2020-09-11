@@ -2,15 +2,12 @@ from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, WebDriverException
 from selenium.webdriver.chrome.options import Options
 import os
-PORT = int(os.environ.get('PORT', 5000))
 
+from time import time, sleep
 from telegram import MessageEntity
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-from time import time, sleep
 
-TOKEN = '1200803966:AAE2lZYxw7k7sj4z2iU6mQPwXx6H3x-io9E'
-
-  
+TOKEN = '1379951431:AAGI2iIux8xUPIa0PTQy-w01nBlFBtjw2GM'
 
 def cmd_start(bot, update):
     '''Manejador comando /start'''
@@ -38,59 +35,56 @@ def cmd_start(bot, update):
     bot.send_message(chat_id, bot_msg)
 
 
-def cmd_comandos(bot, update):
-    '''Manejador comando /comandos'''
+def cmd_help(bot, update):
+    '''Manejador comando /help'''
     # Preparamos el texto que queremos enviar
     bot_msg = "Comandos disponibles:\n" \
               "- /start\n" \
-              "- /comandos\n" \
-              "- /kb <N° de tatjeta>\n"
+              "- /help\n" \
+              "- /producto\n"
     # Respondemos al mensaje recibido (aqui no hace falta determinar cual es el ID del chat, ya que 
     # "update" contiene dicha informacion y lo que vamos es a responder)
     update.message.reply_text(bot_msg)
 
 
-def cmd_kb(bot, update, args):
-    '''Manejador comando /kb'''
+def cmd_producto(bot, update, args):
+    '''Manejador comando /producto'''
     # Obtenemos el ID de chat
     chat_id = update.message.chat_id
     # Si el comando decir presenta argumentos
     if len(args) > 0:
 
         try:
-            CHROMEDRIVER_PATH = os.getenv('CHROMEDRIVER_PATH')
-            GOOGLE_CHROME_BIN = os.getenv('GOOGLE_CHROME_BIN')
             # Enviar el mensaje con el Bot
+            CHROMEDRIVER_PATH = os.environ.get('CHROMEDRIVER_PATH', 'C:\Program Files (x86)\Python\Python38-32\Lib\site-packages\selenium\webdriver\chrome\chromedriver.exe')
+            GOOGLE_CHROME_BIN = os.environ.get('GOOGLE_CHROME_BIN', 'C:\Program Files (x86)\Google\Chrome\Application\chrome.exe')
             options = Options()
             options.binary_location = GOOGLE_CHROME_BIN
             options.add_argument('--disable-gpu')
             options.add_argument('--no-sandbox')
             options.headless = True
-            
-            bot.send_message(chat_id, "pasa por el try")
             driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, chrome_options=options)
             
             # Scraping
-            url = 'http://192.168.200.226/kanboard-1.2.7/public/task/'+ args[0] +'/ca8a96eba8157552d6b59f64ea302d340865cfcb694aaf78326e19b4e2ac' #args[0] contiene el n° de la tarjeta
+            url = 'https://www.magasa.cl/producto/aparador-tv-'+ args[0] #args[0] contiene el n° de la tarjeta
             driver.get(url)
-            el = driver.find_element_by_class_name('comments') #sacar los comentarios de la tarjeta
+            el = driver.find_element_by_tag_name('bdi') #sacar los comentarios de la tarjeta
             msg = el.text
+
             
             #si no tiene comentarios la tarjeta
             if msg == "":
-                bot_msg = "Esta tarjeta no tiene comentarios."
+                bot_msg = "Este producto no tiene precio."
 
             #Se comentan los caracteres vacíos para que no de error al momento de ejecutar
-            else:
-              bot_msg = msg.replace("_", "\\_").replace("*", "\\*").replace("[", "\\[").replace("`", "\\`")
-        
+            else:  
+                bot_msg = msg.replace("_", "\\_").replace("*", "\\*").replace("[", "\\[").replace("`", "\\`")
+
         except Exception as e:
-            bot_msg = str(e)  
-        #except:
-        #  bot_msg = "Tarjeta no encontrada, favor intente nuevamente."
+            bot_msg = str(e)
         
     else:
-        bot_msg = "El comando /kb tiene que incluir el N° de tarjeta."
+        bot_msg = "El comando /producto tiene que incluir el producto."
     
     bot.send_message(chat_id, bot_msg) #Se imprime el mensaje
     
@@ -115,8 +109,8 @@ def main():
     dp = updater.dispatcher
     # Establecer en el dispatcher un manejador para cada comando a recibir
     dp.add_handler(CommandHandler("start", cmd_start))
-    dp.add_handler(CommandHandler("comandos", cmd_comandos))
-    dp.add_handler(CommandHandler("kb", cmd_kb, pass_args=True))
+    dp.add_handler(CommandHandler("help", cmd_help))
+    dp.add_handler(CommandHandler("producto", cmd_producto, pass_args=True))
     # Establecer en el dispatcher un manejador para mensajes a recibir que no sean comandos. Para 
     # ello se hacen uso de los filtros, es decir, el manejador saltara si se detecta alguno de 
     # estos tipos de mensajes (texto, imagen, audio...)
@@ -124,11 +118,7 @@ def main():
         Filters.video | Filters.sticker | Filters.document | Filters.location | Filters.contact, \
         msg_nocmd))
     # Lanzar el Bot ignorando los mensajes que se hayan recibido cuando estaba inactivo (clean=True)
-    #updater.start_polling(clean=True)
-    updater.start_webhook(listen="0.0.0.0",
-                          port=int(PORT),
-                          url_path=TOKEN)
-    updater.bot.setWebhook('https://botqa.herokuapp.com/' + TOKEN)
+    updater.start_polling(clean=True)
     # Bucle infinito con el cual se muestra como enviar mensajes del Bot cada minuto
     bot = updater.bot
     t_inicial = time()
@@ -144,3 +134,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+
+
