@@ -1,1 +1,1 @@
-web: python3 QaSbBot.py
+web: python3 bot-telegram-scraping.py
