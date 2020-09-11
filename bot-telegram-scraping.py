@@ -2,6 +2,7 @@ from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, WebDriverException
 from selenium.webdriver.chrome.options import Options
 import os
+PORT = int(os.environ.get('PORT', 5000))
 
 from time import time, sleep
 from telegram import MessageEntity
